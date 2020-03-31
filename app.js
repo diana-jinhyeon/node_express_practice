@@ -1,35 +1,30 @@
-var express = require('express')
-var app = express()
-var bodyParser = require('body-parser')
-var cors = require('cors')
-
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var cors = require('cors');
+var router = require("./router/index");
+var passport = require("passport");
+var local_strategy = require("passport-local").Strategy;
+var session = require('express-session');
+var flash = require('connect-flash');
 
 app.listen(3000, function(){
-  console.log("start! express server on port 3000!")
+  console.log("start! express server on port 3000!");
 });
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.set('view engine', 'ejs');
-app.use(cors())
+app.use(cors());
 
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname + "/public/main.html");
-});
-
-app.get('/main', function(req, res){
-  res.sendFile(__dirname + "/public/main.html");
-});
-
-app.post('/email_post', function(req, res){
-  console.log(req.body);
-  res.render('email.ejs', {'email': req.body.email});
-});
-
-app.post('/ajax_send_email', function(req, res){
-  console.log(req.body.email);
-  var responseData = {'result':'ok', 'email': req.body.email}
-  res.json(responseData)
-});
+app.use(router);
