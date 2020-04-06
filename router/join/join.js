@@ -15,16 +15,38 @@ var connection = mysql.createConnection({
 
 connection.connect();
 router.get('/', function(req, res){
-  res.render('join.ejs');
+  var msg="hi";
+  var errMsg = req.flash('error');
+  if(errMsg) msg = errMsg;
+  console.log(req);
+  res.render('join.ejs', {'message': msg});
+
 });
 
-passport.use('loacl-join', new local_strategy({
+passport.use('local-join', new local_strategy({
   usernameField: 'email',
   passwordField: 'password',
   passReqToCallback: true
 }, function(req, email, password, done){
-  console.log('local-join callback called');
+  var query = connection.query('select * from user where email=?', {email}, function(err, rows){
+    if(err) return done(err);
+    if (rows.length){
+      console.log("exist user");
+      return done(null, false, {message: 'your email is already used'});
+    } else {
+
+    }
+  });
 }));
+
+
+router.post('/', passport.authenticate('local-join',
+  {
+    successRedirect: '/main',
+    failureRedirect: '/join',
+    failtureFlash: true
+  }
+));
 
 // router.post('/', function(req, res){
 //   var body = req.body;
